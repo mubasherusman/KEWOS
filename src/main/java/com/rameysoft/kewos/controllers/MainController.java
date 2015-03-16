@@ -9,13 +9,15 @@ import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javafx.application.Platform;
@@ -70,6 +72,7 @@ public class MainController implements ButtonColumnController<Result>{
     @FXML    private Button clearTableBtn;
     @FXML    private Button browseFileSavingPath;
     @FXML    private Button searchButtonCustom;
+    @FXML    private Button copyFiles;
     @FXML    private ResourceBundle resources;
     @FXML    private URL location;    
     @FXML    private AnchorPane appMain;
@@ -81,7 +84,7 @@ public class MainController implements ButtonColumnController<Result>{
     @FXML    protected TextField filesSavingPath;
     @FXML    private TabPane tabPane;
     
-	private ButtonColumn<Result> clmFileName;
+		  private ButtonColumn<Result> clmFileName;
 	@FXML private TextColumn<Result> clmMISSING_RESIDUES;
 	@FXML private TextColumn<Result> clmMUTATION;
 	@FXML private TextColumn<Result> clmEC;
@@ -90,6 +93,7 @@ public class MainController implements ButtonColumnController<Result>{
 	@FXML private TextColumn<Result> clmMOLECULE;
 	@FXML private TextColumn<Result> clmRESOLUTION;
 	@FXML private TextColumn<Result> clmHetnam;
+	@FXML private TextColumn<Result> clmPath;
 	
 	@FXML    private CheckBox ckbExpDTA;
     @FXML    private CheckBox ckbMissingRes;
@@ -106,9 +110,12 @@ public class MainController implements ButtonColumnController<Result>{
     private SearchFactory mSearchFactory;
     private FileChooser  fileChooser;
     protected Tab selectedIndex = null;
+    public List<Result> resultData = new ArrayList<>();
+    private ObservableList<File> mFiles = FXCollections.observableArrayList();
     
 	@FXML
     void initialize() {
+		selectedIndex = tab1;
 		pathToPdbFiles.setItems(mFiles);
 		fileChooser = new FileChooser();
 
@@ -125,6 +132,7 @@ public class MainController implements ButtonColumnController<Result>{
     	clmFileName = new ButtonColumn<Result>("fileName", 100d, "FILE NAME");
     	clmFileName.setHelper(this);
     	tblResults.getColumns().add(0, clmFileName);
+    	tblResults.getColumns().remove(clmPath);
     	tblResults.setController(controller);
     	tblResults.setMaxRecord(5000);
     	tblResults.reloadFirstPage();    	
@@ -138,33 +146,44 @@ public class MainController implements ButtonColumnController<Result>{
     	
     	tblResults.setDisableComponents(true,TableControl.Component.BUTTON_EXPORT);
     	
-    	
+    	mSearchFactory = SearchFactory.getInstance();
     	//service result listener
     	service.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 
             @Override
             public void handle(WorkerStateEvent t) {
             	
-            	if(!resultData.isEmpty()){        
-            		if(selectedIndex == tab1){
-            			tblResults.setDisableComponents(false,TableControl.Component.BUTTON_EXPORT);            			
-            		} else {
-            			tblResults.setDisableComponents(true,TableControl.Component.BUTTON_EXPORT);            		
-            		}
-                	
+            	if(!resultData.isEmpty()){     
+        			tblResults.setDisableComponents(false,TableControl.Component.BUTTON_EXPORT);            			               	
             		tblResults.reloadFirstPage();
             	}
             }
         });
     	
-		mSearchFactory = SearchFactory.getInstance();
+    	serviceForCustomeSearch.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+
+            @Override
+            public void handle(WorkerStateEvent t) {
+            	
+            	if(!resultData.isEmpty()){     
+        			tblResults.setDisableComponents(true,TableControl.Component.BUTTON_EXPORT);            			               	
+            		tblResults.reloadFirstPage();
+            	}
+            }
+        });
 		
 		tabPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
 		    @Override
 		    public void changed(ObservableValue<? extends Tab> ov, Tab oldValue, Tab newValue) {
 		    	selectedIndex = newValue;
-		    	if(selectedIndex == tab1){
+		    	if(resultData.size() > 0){
 		    		resultData.clear();
+	    		}
+		    	if(selectedIndex == tab1){
+		    		
+		    		serviceForCustomeSearch.cancel();
+		    		service.reset();
+		    		
 		    		ckbChain.setSelected(true);
         	    	ckbEc.setSelected(true);
         	    	ckbExpDTA.setSelected(true);
@@ -173,31 +192,44 @@ public class MainController implements ButtonColumnController<Result>{
         	    	ckbMolecult.setSelected(true);
         	    	ckbMutation.setSelected(true);
         	    	ckbResolution.setSelected(true);
-
+        	    	
+        	    	tblResults.getColumns().clear();
+        	    	tblResults.getColumns().add(0, clmFileName);
             		tblResults.getColumns().add(clmMISSING_RESIDUES);
             		tblResults.getColumns().add(clmMUTATION);
+            		tblResults.getColumns().add(clmRESOLUTION);
             		tblResults.getColumns().add(clmEC);
             		tblResults.getColumns().add(clmEXPDTA);
             		tblResults.getColumns().add(clmCHAIN);
             		tblResults.getColumns().add(clmMOLECULE);
         	    	tblResults.getColumns().add(clmHetnam);
+
+        	    	ckbChain.setDisable(false);
+        	    	ckbEc.setDisable(false);
+        	    	ckbExpDTA.setDisable(false);
+        	    	ckbHetnam.setDisable(false);
+        	    	ckbMissingRes.setDisable(false);
+        	    	ckbMolecult.setDisable(false);
+        	    	ckbMutation.setDisable(false);
+        	    	ckbResolution.setDisable(false);
+        	    	tblResults.reloadFirstPage();
+        	    	
+        	    	searchButton.setDisable(false);
             		            		
-        	    	mSearchFactory.initPredefined();
 		    	} else {
-		    		resultData.clear();
+		    		service.cancel();
+		    		serviceForCustomeSearch.reset();		    		
+		
 		    		tblResults.getColumns().clear();
         			tblResults.getColumns().add(0, clmFileName);
-		    		mSearchFactory.initCustome();
+        			tblResults.getColumns().add(1, clmPath);
+        			searchButtonCustom.setDisable(false);
+		    		disableKeyWordSelection(false);
 		    	}
 		    }
 		});
 		
-	}
-
-	DecimalFormat df = new DecimalFormat("#.#");
-    public List<Result> resultData = new ArrayList<>();
-    private ObservableList<File> mFiles = FXCollections.observableArrayList();
-   
+	}   
 
     @FXML
     void onBrowseAction(ActionEvent event) {
@@ -234,7 +266,39 @@ public class MainController implements ButtonColumnController<Result>{
     void onBrowseActionFileSave(ActionEvent event) {
     	filesSavingPath.setText(distinationPath());
     }
-
+    
+    @FXML
+    void onCopyFilesAction(ActionEvent event) {
+    	String desDir = filesSavingPath.getText();
+    	if(!desDir.isEmpty() ){
+    		
+    		if(resultData.size() > 0){
+    			copyService.reset();
+    			Dialogs.create()
+                .owner(getStage())
+                .title("Copy")
+                .masthead("Copying the result Files")
+                .showWorkerProgress(copyService);    	
+    			copyService.start();	
+    			
+    		} else {
+    			Dialogs.create()
+                .title("Text Search")
+                .masthead("Error")
+                .message("Result Data is empty. Nothing to copy")
+                .styleClass(Dialog.STYLE_CLASS_NATIVE)
+                .showWarning();
+    		}
+    	} else {
+			
+			Dialogs.create()
+	                .title("Text Search")
+	                .masthead("Error")
+	                .message("Select an existing folder")
+	                .styleClass(Dialog.STYLE_CLASS_NATIVE)
+	                .showWarning();
+    	}
+    }
 	private String distinationPath() {
 		DirectoryChooser directoryChooser = new DirectoryChooser();
 
@@ -296,8 +360,8 @@ public class MainController implements ButtonColumnController<Result>{
             .owner(getStage())
             .title("TextSearch")
             .masthead("Searching on given Files")
-            .showWorkerProgress(service);    	
-        	service.start();	
+            .showWorkerProgress(serviceForCustomeSearch);    	
+    		serviceForCustomeSearch.start();	
         	disableKeyWordSelection(true);
         	clearTableBtn.setDisable(false);
         	
@@ -332,6 +396,41 @@ public class MainController implements ButtonColumnController<Result>{
         }
     }
 
+    protected Service<Void> copyService = new Service<Void>() {
+
+		@Override
+		protected Task<Void> createTask() {
+			return new Task<Void>() {
+
+				@Override
+				protected Void call() throws Exception {
+					  String desDir = filesSavingPath.getText();
+		              int i=0;
+		              int max = resultData.size();
+		              updateMessage("Initializing Copy");                        	 
+		              updateProgress(0, max);
+		              
+		              for(Result result : resultData){
+		    				Path srcFile = Paths.get(result.getPath());
+		    				Path dest = Paths.get(desDir,Paths.get(result.getFileName()).getFileName().toString());
+		    				try {
+								Files.copy(srcFile, dest, StandardCopyOption.REPLACE_EXISTING);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+		    				
+		    				updateProgress(++i, max );
+			     			int percent = (i*100)/max;
+			     			 
+			     			updateMessage("Searching ... (" +percent + " %)");
+	    			  }  		    
+
+		     		  updateMessage("Copy Complete");
+		     		  return null;
+				}
+			};
+		}
+	};
     protected Service<List<Result>> service = new Service<List<Result>>() {
 
 		@Override
@@ -344,11 +443,6 @@ public class MainController implements ButtonColumnController<Result>{
 		              resultData.clear();
 		              int i=0;
 		              int max = mFiles.size();
-		              Pattern custome = null;
-		              if(selectedIndex == tab2){
-		            	  String text = keyWordText.getText();
-		            	  custome = Pattern.compile("("+text+")");
-		              }
 		              updateMessage("Initializing Search");                        	 
 		              updateProgress(0, max);
 		              
@@ -363,8 +457,8 @@ public class MainController implements ButtonColumnController<Result>{
 		     				CharBuffer buf = StandardCharsets.UTF_8.decode(channel.map(MapMode.READ_ONLY, 0, channel.size()));
 		     				channel.close();
 		     				//--------------------------
-		     				for(SearcherI searcher : SearchFactory.getInstance().getSearchAblesTable().values()){
-		     					result = searcher.doSearch(result, buf, custome);
+		     				for(SearcherI searcher : SearchFactory.getInstance().getSearchAbles().values()){
+		     					result = searcher.doSearch(result, buf);
 		     				}		     				
 		     				//--------------------------
 		     				
@@ -387,6 +481,66 @@ public class MainController implements ButtonColumnController<Result>{
 			};
 		}
 	};
+	
+	 protected Service<List<Result>> serviceForCustomeSearch = new Service<List<Result>>() {
+
+			@Override
+			protected Task<List<Result>> createTask() {
+				return new Task<List<Result>>() {
+
+					@Override
+					protected List<Result> call() throws Exception {
+						
+			              resultData.clear();
+			              int i=0;
+			              int max = mFiles.size();
+			              Pattern custome = null;
+		            	  String text = keyWordText.getText().trim();
+		            	  if(text != null && !text.isEmpty()){
+			            	  custome = Pattern.compile("("+text+")");
+				              
+				              updateMessage("Initializing Search");                        	 
+				              updateProgress(0, max);
+				              
+				     		  for(File file : mFiles){
+				     			  Path path = file.toPath();
+				     			  FileChannel channel;
+				     			  
+				     			  try {
+				     				channel = FileChannel.open(path, StandardOpenOption.READ);
+				     				CharBuffer buf = StandardCharsets.UTF_8.decode(channel.map(MapMode.READ_ONLY, 0, channel.size()));
+				     				channel.close();
+				     				//--------------------------
+				     				Matcher matcher = custome.matcher(buf);
+				     				if(matcher.find()){
+				     					Result result = new Result();
+						     			result.setFileName(path.toString());
+						     			result.setPath(path.toString());
+						     			resultData.add(result);
+				     				}			     						     				
+				     				//--------------------------
+				     				
+				     				buf = null;
+				     				//--------------------------
+				     			  } catch (IOException e) {
+				     				e.printStackTrace();
+				     			  }
+				     			
+				     			  updateProgress(++i, max );
+				     			  int percent = (i*100)/max;
+				     			 
+				     			  updateMessage("Searching ... (" +percent + " %)");
+				     		  }  
+	
+				     		  updateMessage("Search Complete");
+		            	  } else {
+		            		  updateMessage("Search Failed, empty search string");
+		            	  }
+			     		  return resultData;
+					}
+				};
+			}
+		};
     
     private TableController<Result> controller = new TableController<Result>() {
 		
@@ -548,7 +702,11 @@ public class MainController implements ButtonColumnController<Result>{
     	disableKeyWordSelection(false);
     	clearTableBtn.setDisable(true);
     	service.reset();
-    	tblResults.setDisableComponents(true,TableControl.Component.BUTTON_EXPORT);
+    	serviceForCustomeSearch.reset();
+    	if(selectedIndex == tab1){
+    		tblResults.setDisableComponents(true,TableControl.Component.BUTTON_EXPORT);
+    	}
+    	
     	
     }
     
@@ -562,6 +720,9 @@ public class MainController implements ButtonColumnController<Result>{
     	ckbMutation.setDisable(disable);
     	ckbResolution.setDisable(disable);
     	tblResults.reloadFirstPage();
+    	if(resultData.size() > 0){
+    		resultData.clear();
+		}
     	searchButtonCustom.setDisable(disable);
     	searchButton.setDisable(disable);
     	

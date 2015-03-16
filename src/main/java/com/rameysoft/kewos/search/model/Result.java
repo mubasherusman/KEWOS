@@ -12,6 +12,7 @@ public class Result {
 	private String molecule;
 	private String resolution;
 	private String hetnam;
+	private String path;
 	
 	public Result() {
     }
@@ -71,5 +72,13 @@ public class Result {
 
 	public void setHetnam(String hetnam) {
 		this.hetnam = hetnam;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
 	}
 }

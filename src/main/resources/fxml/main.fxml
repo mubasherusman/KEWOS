@@ -79,9 +79,10 @@
                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                            <children>
                               <TextField fx:id="keyWordText" layoutX="7.0" layoutY="5.0" prefHeight="25.0" prefWidth="349.0" promptText="your Key Word" AnchorPane.topAnchor="17.0" />
-                              <TextField fx:id="filesSavingPath" editable="false" layoutX="7.0" layoutY="37.0" prefHeight="25.0" prefWidth="406.0" promptText="Path where you want to store files in which keyword matched" AnchorPane.bottomAnchor="3.0" />
-                              <Button fx:id="browseFileSavingPath" layoutX="421.0" layoutY="37.0" mnemonicParsing="false" onAction="#onBrowseActionFileSave" prefHeight="25.0" prefWidth="92.0" text="Browse" AnchorPane.bottomAnchor="3.0" />
+                              <TextField fx:id="filesSavingPath" editable="false" layoutX="7.0" layoutY="37.0" prefHeight="25.0" prefWidth="265.0" promptText="Path where you want to store files in which keyword matched" AnchorPane.bottomAnchor="3.0" />
+                              <Button fx:id="browseFileSavingPath" layoutX="285.0" layoutY="63.0" mnemonicParsing="false" onAction="#onBrowseActionFileSave" prefHeight="25.0" prefWidth="92.0" text="Browse" AnchorPane.bottomAnchor="3.0" />
                               <Button fx:id="searchButtonCustom" defaultButton="true" layoutX="366.0" layoutY="16.0" mnemonicParsing="false" onAction="#onSearchActionCustom" prefHeight="28.0" prefWidth="151.0" text="Start Search" />
+                              <Button fx:id="copyFiles" layoutX="396.0" layoutY="63.0" mnemonicParsing="false" onAction="#onCopyFilesAction" prefHeight="25.0" prefWidth="92.0" text="Copy Files" />
                            </children>
                         </AnchorPane>
                     </content>
@@ -100,6 +101,7 @@
 				        <TextColumn fx:id="clmCHAIN" editable="false" propertyName="chain" text="CHAIN" />
 				        <TextColumn fx:id="clmMOLECULE" editable="false" propertyName="molecule" text="MOLECULE" />
 				        <TextColumn fx:id="clmHetnam" editable="false" propertyName="hetnam" text="HETNAM" />
+				        <TextColumn fx:id="clmPath" editable="false" propertyName="path" text="File Path" />
       				 </columns>
     			  </TableControl>
                   <Label layoutX="298.0" layoutY="12.0" text="Search Results" AnchorPane.leftAnchor="298.0" AnchorPane.topAnchor="8.0">
