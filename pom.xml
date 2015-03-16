@@ -13,6 +13,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>    
         <mainClass>com.rameysoft.kewos.App</mainClass>
+        <java.home>C:\Program Files\Java\jdk1.8.0_40\jre</java.home>
   </properties>
 
   <dependencies>
@@ -105,16 +106,6 @@
                             </arguments>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>default-cli</id>
-                        <goals>
-                            <goal>exec</goal>                            
-                        </goals>
-                        <configuration>
-                            <executable>${java.home}/bin/java</executable>
-                            <commandlineArgs>${runfx.args}</commandlineArgs>
-                        </configuration>
-                    </execution>
                 </executions>  
             </plugin>
 			<!-- <plugin>
@@ -134,9 +125,6 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
-                    <compilerArguments>
-                        <bootclasspath>${sun.boot.class.path}${path.separator}${java.home}/lib/jfxrt.jar</bootclasspath>
-                    </compilerArguments>
                 </configuration>
             </plugin>
         </plugins>
