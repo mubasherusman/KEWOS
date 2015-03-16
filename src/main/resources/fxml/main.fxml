@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.panemu.tiwulfx.table.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.input.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.paint.*?>
+
+<AnchorPane fx:id="appMain" prefHeight="600.0" prefWidth="860.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.rameysoft.kewos.controllers.MainController">
+   <children>
+      <MenuBar AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+              <MenuItem mnemonicParsing="false" onAction="#onCloseAction" text="Close">
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="F4" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Help">
+            <items>
+              <MenuItem mnemonicParsing="false" onAction="#onAboutMenuItemAction" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <AnchorPane layoutY="24.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="24.0">
+         <children>
+            <Button layoutX="243.0" layoutY="4.0" mnemonicParsing="false" onAction="#onBrowseAction" prefHeight="25.0" prefWidth="71.0" text="Browse" AnchorPane.leftAnchor="243.0" />
+            <Label layoutX="8.0" layoutY="12.0" text="PBD File(s)" AnchorPane.leftAnchor="8.0">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font></Label>
+            <TabPane layoutX="323.0" prefHeight="96.0" prefWidth="529.0" style="-fx-border-color: lightgrey;" tabClosingPolicy="UNAVAILABLE">
+              <tabs>
+                <Tab text="Pre-Defined Key Word Search">
+                     <content>
+                        <GridPane prefHeight="94.0" prefWidth="448.0">
+                          <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                          </rowConstraints>
+                           <children>
+                              <CheckBox fx:id="ckbMissingRes" mnemonicParsing="false" onAction="#onCkbMisResAction" selected="true" text="MISSING RESIDUES" underline="true" />
+                              <CheckBox fx:id="ckbMutation" mnemonicParsing="false" onAction="#onCkbMutAction" selected="true" text="MUTATION" underline="true" GridPane.columnIndex="1" />
+                              <CheckBox fx:id="ckbResolution" mnemonicParsing="false" onAction="#onCkbResAction" selected="true" text="RESOLUTION" underline="true" GridPane.columnIndex="2" />
+                              <CheckBox fx:id="ckbEc" mnemonicParsing="false" onAction="#onCkbEcAction" selected="true" text="EC" underline="true" GridPane.rowIndex="1" />
+                              <CheckBox fx:id="ckbExpDTA" mnemonicParsing="false" onAction="#onCkbExpdtaAction" selected="true" text="EXPDTA" underline="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                              <CheckBox fx:id="ckbChain" mnemonicParsing="false" onAction="#onCkbChainAction" selected="true" text="CHAIN" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                              <CheckBox fx:id="ckbMolecult" mnemonicParsing="false" onAction="#onCkbMolAction" selected="true" text="MOLECULE" underline="true" GridPane.rowIndex="2" />
+                              <CheckBox fx:id="ckbHetnam" mnemonicParsing="false" onAction="#onCkbHetnamAction" selected="true" text="HETNAM" underline="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                           </children>
+                        </GridPane>
+                     </content>
+                </Tab>
+                  <Tab text="Custom Key Word Search">
+                    <content>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                           <children>
+                              <TextField layoutX="7.0" layoutY="5.0" prefHeight="25.0" prefWidth="286.0" promptText="your Key Word" />
+                              <TextField fx:id="filesSavingPath" editable="false" layoutX="7.0" layoutY="37.0" prefHeight="25.0" prefWidth="406.0" promptText="Path where you want to store files in which keyword matched" />
+                              <Button fx:id="browseFileSavingPath" layoutX="421.0" layoutY="37.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="92.0" text="Browse" />
+                           </children>
+                        </AnchorPane>
+                    </content>
+                  </Tab>
+              </tabs>
+            </TabPane>
+            <TextField fx:id="destExcelFilePath" editable="false" focusTraversable="false" layoutX="323.0" layoutY="97.0" prefHeight="25.0" prefWidth="369.0" promptText="Save XML File To" AnchorPane.leftAnchor="323.0" AnchorPane.rightAnchor="88.0" />
+            <Button layoutX="701.0" layoutY="96.0" mnemonicParsing="false" onAction="#onDestBrowseAction" prefHeight="25.0" prefWidth="71.0" text="Browse" AnchorPane.rightAnchor="8.0" />
+            <AnchorPane layoutX="15.0" layoutY="96.0" prefHeight="442.0" prefWidth="750.0" style="-fx-border-color: grey;" AnchorPane.bottomAnchor="8.0" AnchorPane.leftAnchor="8.0" AnchorPane.rightAnchor="8.0" AnchorPane.topAnchor="125.0">
+               <children>
+                  <TableControl fx:id="tblResults" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+  					  <columns>
+        				<TextColumn fx:id="clmMISSING_RESIDUES" editable="false" prefWidth="120.0" propertyName="missingResidues" text="MISSING RESIDUES" />
+        				<TextColumn fx:id="clmMUTATION" editable="false" propertyName="mutation" text="MUTATION" />
+        				<TextColumn fx:id="clmRESOLUTION" editable="false" propertyName="resolution" text="RESOLUTION" />
+        				<TextColumn fx:id="clmEC" editable="false" prefWidth="60.0" propertyName="ec" text="EC" />
+				        <TextColumn fx:id="clmEXPDTA" editable="false" propertyName="expdta" text="EXPDTA" />
+				        <TextColumn fx:id="clmCHAIN" editable="false" propertyName="chain" text="CHAIN" />
+				        <TextColumn fx:id="clmMOLECULE" editable="false" propertyName="molecule" text="MOLECULE" />
+				        <TextColumn fx:id="clmHetnam" editable="false" propertyName="hetnam" text="HETNAM" />
+      				 </columns>
+    			  </TableControl>
+                  <Label layoutX="298.0" layoutY="12.0" text="Search Results" AnchorPane.leftAnchor="298.0" AnchorPane.topAnchor="8.0">
+                     <font>
+                        <Font name="System Bold" size="12.0" />
+                     </font>
+                  </Label>
+                  <Button fx:id="clearTableBtn" cancelButton="true" disable="true" focusTraversable="false" mnemonicParsing="false" onAction="#onClearTableAction" prefHeight="28.0" text="Clear Table" AnchorPane.rightAnchor="164.0" AnchorPane.topAnchor="1.0" />
+               </children></AnchorPane>
+            <Button fx:id="searchButton" defaultButton="true" layoutX="639.0" layoutY="127.0" mnemonicParsing="false" onAction="#onSearchAction" prefHeight="28.0" prefWidth="151.0" text="Start Search" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="127.0" />
+            <ListView fx:id="pathToPdbFiles" focusTraversable="false" layoutX="8.0" layoutY="33.0" prefHeight="89.0" prefWidth="306.0" AnchorPane.leftAnchor="8.0" AnchorPane.topAnchor="33.0" />
+         </children>
+      </AnchorPane>
+   </children>
+</AnchorPane>
