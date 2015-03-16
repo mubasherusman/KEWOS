@@ -16,8 +16,11 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
@@ -30,6 +33,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TextField;
@@ -63,6 +68,8 @@ public class MainController implements ButtonColumnController<Result>{
 	private StatusBar statusbar;
     @FXML    private Button searchButton;
     @FXML    private Button clearTableBtn;
+    @FXML    private Button browseFileSavingPath;
+    @FXML    private Button searchButtonCustom;
     @FXML    private ResourceBundle resources;
     @FXML    private URL location;    
     @FXML    private AnchorPane appMain;
@@ -70,6 +77,9 @@ public class MainController implements ButtonColumnController<Result>{
     @FXML    private ListView<File> pathToPdbFiles;
     @FXML    private AnchorPane tableContainer;    
     @FXML    protected TableControl<Result> tblResults;
+    @FXML    protected TextField keyWordText ;
+    @FXML    protected TextField filesSavingPath;
+    @FXML    private TabPane tabPane;
     
 	private ButtonColumn<Result> clmFileName;
 	@FXML private TextColumn<Result> clmMISSING_RESIDUES;
@@ -90,8 +100,12 @@ public class MainController implements ButtonColumnController<Result>{
     @FXML    private CheckBox ckbMolecult;
     @FXML    private CheckBox ckbHetnam;
     
+    @FXML private Tab tab1;
+    @FXML private Tab tab2;
+    
     private SearchFactory mSearchFactory;
     private FileChooser  fileChooser;
+    protected Tab selectedIndex = null;
     
 	@FXML
     void initialize() {
@@ -131,16 +145,52 @@ public class MainController implements ButtonColumnController<Result>{
             @Override
             public void handle(WorkerStateEvent t) {
             	
-            	if(!resultData.isEmpty()){
-            	
+            	if(!resultData.isEmpty()){        
+            		if(selectedIndex == tab1){
+            			tblResults.setDisableComponents(false,TableControl.Component.BUTTON_EXPORT);            			
+            		} else {
+            			tblResults.setDisableComponents(true,TableControl.Component.BUTTON_EXPORT);            		
+            		}
+                	
             		tblResults.reloadFirstPage();
-            		tblResults.setDisableComponents(false,TableControl.Component.BUTTON_EXPORT);
-            	
             	}
             }
         });
     	
 		mSearchFactory = SearchFactory.getInstance();
+		
+		tabPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
+		    @Override
+		    public void changed(ObservableValue<? extends Tab> ov, Tab oldValue, Tab newValue) {
+		    	selectedIndex = newValue;
+		    	if(selectedIndex == tab1){
+		    		resultData.clear();
+		    		ckbChain.setSelected(true);
+        	    	ckbEc.setSelected(true);
+        	    	ckbExpDTA.setSelected(true);
+        	    	ckbHetnam.setSelected(true);
+        	    	ckbMissingRes.setSelected(true);
+        	    	ckbMolecult.setSelected(true);
+        	    	ckbMutation.setSelected(true);
+        	    	ckbResolution.setSelected(true);
+
+            		tblResults.getColumns().add(clmMISSING_RESIDUES);
+            		tblResults.getColumns().add(clmMUTATION);
+            		tblResults.getColumns().add(clmEC);
+            		tblResults.getColumns().add(clmEXPDTA);
+            		tblResults.getColumns().add(clmCHAIN);
+            		tblResults.getColumns().add(clmMOLECULE);
+        	    	tblResults.getColumns().add(clmHetnam);
+            		            		
+        	    	mSearchFactory.initPredefined();
+		    	} else {
+		    		resultData.clear();
+		    		tblResults.getColumns().clear();
+        			tblResults.getColumns().add(0, clmFileName);
+		    		mSearchFactory.initCustome();
+		    	}
+		    }
+		});
 		
 	}
 
@@ -177,7 +227,16 @@ public class MainController implements ButtonColumnController<Result>{
     
     @FXML
     void onDestBrowseAction(ActionEvent event) {
-    	DirectoryChooser directoryChooser = new DirectoryChooser();
+    	destExcelFilePath.setText(distinationPath());
+    }
+    
+    @FXML
+    void onBrowseActionFileSave(ActionEvent event) {
+    	filesSavingPath.setText(distinationPath());
+    }
+
+	private String distinationPath() {
+		DirectoryChooser directoryChooser = new DirectoryChooser();
 
         directoryChooser.setTitle("Distination Path");
         directoryChooser.setInitialDirectory(
@@ -188,28 +247,50 @@ public class MainController implements ButtonColumnController<Result>{
          
          if(selectedDirectory != null){
              if(!selectedDirectory.getName().isEmpty()){
-            	 destExcelFilePath.setText(selectedDirectory.getAbsolutePath());
-                 
+            	return selectedDirectory.getAbsolutePath();                 
              }
          } else {
          	Action yes = new DialogAction("Ok", ButtonType.YES);
 			
- 			Action response = Dialogs.create()
+ 			Dialogs.create()
  	                .title("Text Search")
  	                .masthead("Error")
  	                .message("Select a proper directory")
  	                .actions(yes)
  	                .styleClass(Dialog.STYLE_CLASS_NATIVE)
  	                .showWarning();
- 	        
-  			if (response == yes) {
-  			   return;
-  			}
          }
-    }
+         
+         return System.getProperty("user.home");
+	}
     
     @FXML
     void onSearchAction(ActionEvent event) {
+    	if(!mFiles.isEmpty()){   
+    		Dialogs.create()
+            .owner(getStage())
+            .title("TextSearch")
+            .masthead("Searching on given Files")
+            .showWorkerProgress(service);    	
+        	service.start();	
+        	disableKeyWordSelection(true);
+        	clearTableBtn.setDisable(false);
+        	
+    	} else {
+    		Action ok = new DialogAction("Ok", ButtonType.YES);
+			
+			Dialogs.create()
+                .title("Text Search")
+                .masthead("Error")
+                .message("Browse and Select one or more files")
+                .actions(ok)
+                .styleClass(Dialog.STYLE_CLASS_NATIVE)
+                .showWarning();
+    	}
+    }
+    
+    @FXML
+    void onSearchActionCustom(ActionEvent event) {
     	if(!mFiles.isEmpty()){    	
     		Dialogs.create()
             .owner(getStage())
@@ -263,6 +344,11 @@ public class MainController implements ButtonColumnController<Result>{
 		              resultData.clear();
 		              int i=0;
 		              int max = mFiles.size();
+		              Pattern custome = null;
+		              if(selectedIndex == tab2){
+		            	  String text = keyWordText.getText();
+		            	  custome = Pattern.compile("("+text+")");
+		              }
 		              updateMessage("Initializing Search");                        	 
 		              updateProgress(0, max);
 		              
@@ -278,7 +364,7 @@ public class MainController implements ButtonColumnController<Result>{
 		     				channel.close();
 		     				//--------------------------
 		     				for(SearcherI searcher : SearchFactory.getInstance().getSearchAblesTable().values()){
-		     					result = searcher.doSearch(result, buf);
+		     					result = searcher.doSearch(result, buf, custome);
 		     				}		     				
 		     				//--------------------------
 		     				
@@ -475,11 +561,17 @@ public class MainController implements ButtonColumnController<Result>{
     	ckbMolecult.setDisable(disable);
     	ckbMutation.setDisable(disable);
     	ckbResolution.setDisable(disable);
-    	
-    	resultData.clear();
     	tblResults.reloadFirstPage();
-    	
+    	searchButtonCustom.setDisable(disable);
     	searchButton.setDisable(disable);
+    	
+    	if(selectedIndex == tab1){
+    		tab2.disableProperty().set(disable);
+    	}
+    	
+    	if(selectedIndex == tab2){
+    		tab1.disableProperty().set(disable);
+    	}
     }
 
 	

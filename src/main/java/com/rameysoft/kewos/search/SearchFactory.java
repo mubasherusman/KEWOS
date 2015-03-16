@@ -19,7 +19,6 @@ public class SearchFactory {
 		if($this == null){
 			synchronized (SearchFactory.class) {
 				$this = new SearchFactory();
-				$this.init();
 			}			
 		}		
 		return $this;
@@ -29,7 +28,8 @@ public class SearchFactory {
 		table = new EnumMap<SearchType, SearcherI>(SearchType.class);
 	}
 
-	private void init() {
+	public void initPredefined() {
+		table.clear();
 		table.put(SearchType.CHAIN, $this.new Chain());
 		table.put(SearchType.EC, $this.new Ec());
 		table.put(SearchType.EXPDTA, $this.new ExpDta());
@@ -40,9 +40,14 @@ public class SearchFactory {
 		table.put(SearchType.RESOLUTION, $this.new Resolution());
 	}
 	
+	public void initCustome() {
+		table.clear();
+		table.put(SearchType.CUSTOME, $this.new Custome());
+	}
+	
 	
 	public static enum SearchType {
-		MISSING_RESIDUES,MUTATION,RESOLUTION,EC,EXPDTA,CHAIN,MOLECULE,HETNAM;
+		MISSING_RESIDUES,MUTATION,RESOLUTION,EC,EXPDTA,CHAIN,MOLECULE,HETNAM,CUSTOME;
 	}
 
 	public interface SearcherI {
@@ -56,13 +61,24 @@ public class SearchFactory {
 		final static Pattern MOLECULE = Pattern.compile("(MOLECULE).*");
 		final static Pattern HETNAM = Pattern.compile("^(HETNAM).*");
 		
-		public Result doSearch(Result result, CharBuffer buf);
+		public Result doSearch(Result result, CharBuffer buf, Pattern custome );
+	}
+	
+	private class Custome implements SearcherI{
+
+		@Override
+		public Result doSearch(Result result,  CharBuffer buf, Pattern custome) {
+			Matcher matcher = custome.matcher(buf);
+			result.setMissingResidues(matcher.find()+"");
+			return result;
+		}
+		
 	}
 	
 	private class MissingResidues implements SearcherI{
 
 		@Override
-		public Result doSearch(Result result,  CharBuffer buf) {
+		public Result doSearch(Result result,  CharBuffer buf, Pattern custome) {
 			Matcher matcher = MISSING_RESIDUES.matcher(buf);
 			result.setMissingResidues(matcher.find()+"");
 			return result;
@@ -73,7 +89,7 @@ public class SearchFactory {
 	private class Mutation implements SearcherI{
 
 		@Override
-		public Result doSearch(Result result,  CharBuffer buf) {
+		public Result doSearch(Result result,  CharBuffer buf, Pattern custome) {
 			Matcher matcher = MUTATION.matcher(buf);
 			result.setMutation(matcher.find()+"");
 			return result;
@@ -83,7 +99,7 @@ public class SearchFactory {
 	private class Resolution implements SearcherI{
 
 		@Override
-		public Result doSearch(Result result,  CharBuffer buf) {
+		public Result doSearch(Result result,  CharBuffer buf, Pattern custome) {
 			Matcher matcher = RESOLUTION.matcher(buf);
 				String val = "NMR";
 				while(matcher.find()) {
@@ -107,7 +123,7 @@ public class SearchFactory {
 	private class Ec implements SearcherI{
 
 		@Override
-		public Result doSearch(Result result,  CharBuffer buf) {
+		public Result doSearch(Result result,  CharBuffer buf, Pattern custome) {
 			Matcher matcher = EC.matcher(buf);
 			if(matcher.find()) {
 				String g = matcher.group().trim();
@@ -128,7 +144,7 @@ public class SearchFactory {
 	private class ExpDta implements SearcherI{
 
 		@Override
-		public Result doSearch(Result result,  CharBuffer buf) {
+		public Result doSearch(Result result,  CharBuffer buf, Pattern custome) {
 			Matcher matcher = EXPDTA.matcher(buf);
 				if(matcher.find()) {
 
@@ -150,7 +166,7 @@ public class SearchFactory {
 	private class Chain implements SearcherI{
 
 		@Override
-		public Result doSearch(Result result,  CharBuffer buf) {
+		public Result doSearch(Result result,  CharBuffer buf, Pattern custome) {
 			Matcher matcher = CHAIN.matcher(buf);
 				if(matcher.find()) {
  					String g = matcher.group().trim();
@@ -171,7 +187,7 @@ public class SearchFactory {
 	private class Molecule implements SearcherI{
 
 		@Override
-		public Result doSearch(Result result,  CharBuffer buf) {
+		public Result doSearch(Result result,  CharBuffer buf, Pattern custome) {
 			Matcher matcher = MOLECULE.matcher(buf);
 				if(matcher.find()) {
  					String g = matcher.group().trim();
@@ -192,7 +208,7 @@ public class SearchFactory {
 	private class Hetnam implements SearcherI{
 
 		@Override
-		public Result doSearch(Result result,  CharBuffer buf) {
+		public Result doSearch(Result result,  CharBuffer buf, Pattern custome) {
 			Matcher matcher = HETNAM.matcher(buf);
 			result.setHetnam(matcher.find()+"");
 			return result;
