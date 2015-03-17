@@ -414,7 +414,7 @@ public class MainController implements ButtonColumnController<Result>{
 		    				Path srcFile = Paths.get(result.getPath());
 		    				Path dest = Paths.get(desDir,Paths.get(result.getFileName()).getFileName().toString());
 		    				try {
-								Files.copy(srcFile, dest, StandardCopyOption.REPLACE_EXISTING);
+								Files.move(srcFile, dest, StandardCopyOption.REPLACE_EXISTING);
 							} catch (IOException e) {
 								e.printStackTrace();
 							}

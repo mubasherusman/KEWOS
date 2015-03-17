@@ -12,8 +12,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>    
-        <mainClass>com.rameysoft.kewos.App</mainClass>
-        <java.home>C:\Program Files\Java\jdk1.8.0_40\jre</java.home>
+    <mainClass>com.rameysoft.kewos.App</mainClass>
   </properties>
 
   <dependencies>
